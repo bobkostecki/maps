@@ -9,7 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-db_string = "postgresql://postgres:beata@localhost:5432/wielkopolska"
+db_string = "postgresql://postgres:haslo@localhost:5432/wielkopolska"
 db = create_engine(db_string)  
 Session = sessionmaker(db)  
 session = Session()
