@@ -9,6 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+#ustawić hasło do bazy danych
 db_string = "postgresql://postgres:haslo@localhost:5432/webgis"
 db = create_engine(db_string)  
 Session = sessionmaker(db)  
