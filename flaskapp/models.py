@@ -7,16 +7,16 @@ base = declarative_base()
 class Water(base):
     __tablename__ = 'water_4326' 
     gid = Column(Integer, primary_key = True)
-    nazwa = Column(String())
-    typ = Column(String())
+    name = Column(String())
+    fclass = Column(String())
     geom = Column(Geometry('MULITPOLYGON',4326))
-    __table_args__ = {'schema': 'kornik'}
+    __table_args__ = {'schema': 'app'}
 
 class Roads(base):
-    __tablename__ = 'road_4326' 
+    __tablename__ = 'roads_4326' 
     gid = Column(Integer, primary_key = True)
-    nazwa = Column(String())
-    typ = Column(String())
+    name = Column(String())
+    fclass = Column(String())
     geom = Column(Geometry('MULILINESTRING',4326))
-    __table_args__ = {'schema': 'kornik'}
+    __table_args__ = {'schema': 'app'}
  
