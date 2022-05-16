@@ -13,7 +13,7 @@ class Water(base):
     __table_args__ = {'schema': 'kornik'}
 
 class Roads(base):
-    __tablename__ = 'drogi_4326' 
+    __tablename__ = 'road_4326' 
     gid = Column(Integer, primary_key = True)
     nazwa = Column(String())
     typ = Column(String())
