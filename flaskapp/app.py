@@ -9,14 +9,14 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-db_string = "postgresql://postgres:haslo@localhost:5432/wielkopolska"
+db_string = "postgresql://postgres:haslo@localhost:5432/webgis"
 db = create_engine(db_string)  
 Session = sessionmaker(db)  
 session = Session()
 
 
 @app.route("/geojson-water", methods=['GET'])
-def handle_drogi():
+def handle_water():
     features = session.query(geofunc.ST_AsGeoJSON(Water)).all()   
     return ({
         "type": "FeatureCollection",
