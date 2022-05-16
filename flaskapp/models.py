@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer
 from geoalchemy2 import Geometry
 from sqlalchemy.ext.declarative import declarative_base
 
-
+#konfiguracja odowłań do tabel w bazie danych
 base = declarative_base() 
 class Water(base):
     __tablename__ = 'water_4326' 
