@@ -52,17 +52,17 @@ var mapbox = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y
             */
     url="http://localhost:5000/geojson-roads";
     $.getJSON(url,function(data){ 
-	        var drogi=L.geoJSON(data,{
+	        var roads=L.geoJSON(data,{
 	        style: {
 		        "color": "#a3a375",
 		        "weight": 2,
 		        "opacity": 0.65
 	        },
 	        onEachFeature: function(feature, layer) {
-	layer.bindPopup(feature.properties.typ);
+	layer.bindPopup(feature.properties.fclass);
 	}
 	});
-	drogi.addTo(map);
+	roads.addTo(map);
 	});
 	
 	url2="http://localhost:5000/geojson-water";
@@ -73,7 +73,7 @@ var mapbox = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y
 		        "opacity": 0.65
 	        },
 	        onEachFeature: function(feature, layer) {
-	layer.bindPopup(feature.properties.typ);
+	layer.bindPopup(feature.properties.fclass);
 	}
 	});
 	water.addTo(map);
