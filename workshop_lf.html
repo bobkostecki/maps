@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<title> Tutorial Leaflet z Geoserver WMS </title> <!--Tu można wpisać własny tytuł dokumentu-->
+
+<head>
+<!--tag responsywności-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!--Linki do bibliotek Leaflet-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+ 
+ 
+<!--Linki do bibliotek jQuey -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+<!--do sekcji head dodać bibliotekę dla odczytu pozycji myszki-->
+<link rel='stylesheet prefetch' href='http://mrmufflon.github.io/Leaflet.Coordinates/dist/Leaflet.Coordinates-0.1.3.css'>
+<script src='http://mrmufflon.github.io/Leaflet.Coordinates/dist/Leaflet.Coordinates-0.1.3.min.js'></script>
+
+<!--miejsce na własne definicje stylów-->
+<style>
+#map{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+#legenda{
+	position: fixed;
+	bottom: 60px;
+	right: 7px;
+	background-color: #ffffff;
+	padding: 10px;
+	width: 120px;
+}
+</style>
+
+</head>
+<body>
+
+<!--miejsce na treść dokumentu-->
+<!--warstwa mapy-->
+<div id="map"> </div>
+
+<div id="legenda">
+<span>Legenda</span><br>
+<span><img style="vertical-align:middle" src="http://localhost:8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=postgis:forest">lasy</span>
+<br>
+<span><img style="vertical-align:middle" src="http://localhost:8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=postgis:water" >wody</span>
+</div>
+
+
+<script>
+//miejsce na skrypty JavaScript
+//definicja obiektu mapy z współrzędnymi dla wybranego obszaru
+
+var map = L.map('map',{minZoom: 8});
+map.setView([52.25, 17.05], 12);
+
+
+//ustawienia zasięgu mapy
+var southWest = L.latLng(52, 17.2),
+northEast = L.latLng(52.4,16.8 );
+var bounds = L.latLngBounds(southWest, northEast);
+map.setMaxBounds(bounds);
+
+map.on('drag', function() {
+    map.panInsideBounds(bounds, { animate: false });
+});
+
+
+//dodanie warstwy osm
+var osm = L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			attribution: "Data by OpenStreetMap"
+}).addTo(map);
+
+var mapbox=L.tileLayer(
+'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', 
+{id: 'mapbox/light-v10',
+accessToken: 'pk.eyJ1Ijoicm9iZXJ0ayIsImEiOiJjaWs5Z3k1ejgwOTY4djltNDV5N2NjaWwzIn0.6Htqjxd5Knc5rZQ7vOpkNw'
+});
+
+//w sekcji <script>
+//dodanie kontrolki skali mapy
+L.control.scale().addTo(map);
+
+//dodanie kontrolki pozycji myszki
+L.control.coordinates({position:"bottomright"}).addTo(map);
+
+
+//dodanie własnych warstw z Geoserwera połączonego z bazą danych PostGIS
+//dodanie zmiennej adresu geoservera
+var ms_url = "http://localhost:8080/geoserver/wms?";
+
+var lasy = L.tileLayer.wms(ms_url, {
+//tu trzeba podać wg składni workspace:warstwa
+			layers: 'postgis:forest', 
+			format: 'image/png',
+			transparent: true, 
+			opacity: 0.8
+	}).addTo(map);
+
+var wody = L.tileLayer.wms(ms_url, {
+//tu trzeba podać wg składni workspace:warstwa
+			layers: 'postgis:water', 
+			format: 'image/png',
+			transparent: true, 
+			opacity: 0.8
+	});
+
+
+//popup z iframe
+/*
+popup = new L.popup();
+function onMapClick(e) {
+	var BBOX = map.getBounds().toBBoxString();
+	var WIDTH = map.getSize().x;
+	var HEIGHT = map.getSize().y;
+	var X = map.layerPointToContainerPoint(e.layerPoint).x;
+	var Y = map.layerPointToContainerPoint(e.layerPoint).y;
+	var qlayers='postgis:forest,postgis:water';
+	var URL =ms_url+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&LAYERS='+
+	qlayers+'&QUERY_LAYERS='+qlayers+'&STYLES=&BBOX='+BBOX+'&FEATURE_COUNT=1&HEIGHT='
+	+HEIGHT+'&WIDTH='+WIDTH+'&INFO_FORMAT=text%2Fhtml&SRS=EPSG%3A4326&X='+X+'&Y='+Y;
+popup
+.setLatLng(e.latlng)
+.setContent(e.latlng.toString()+"<iframe src='"+URL+"'width='300' height='150' frameborder='0'></iframe>")
+.openOn(map);
+}
+map.on("click", onMapClick);
+*/
+//popup z jQuery Ajax
+popup = new L.popup({minWidth:200}); //utworzenie obiektu popup
+//definicja funkcji dla popup
+function onMapClickPopup(e) {
+//definowanie parametrów dla GetFeatureInfo
+	var BBOX = map.getBounds().toBBoxString();
+	var WIDTH = map.getSize().x;
+	var HEIGHT = map.getSize().y;
+	var X = map.layerPointToContainerPoint(e.layerPoint).x;
+	var Y = map.layerPointToContainerPoint(e.layerPoint).y;
+	var qlayers='postgis:forest,postgis:water';
+	var URL =ms_url+'SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&LAYERS='+
+	qlayers+'&QUERY_LAYERS='+qlayers+'&STYLES=&BBOX='+BBOX+'&FEATURE_COUNT=1&HEIGHT='
+	+HEIGHT+'&WIDTH='+WIDTH+'&INFO_FORMAT=text%2Fhtml&SRS=EPSG%3A4326&X='+X+'&Y='+Y;
+//uruchomienie kontroli zdarzeń ajax
+	$.ajax({
+		url: URL,
+		dataType: "html",
+		type: "GET",
+		success: function(result){ 		
+			    popup.setLatLng(e.latlng)
+				 .setContent(e.latlng+result)
+				 .openOn(map);
+	}});
+}
+map.on("click", onMapClickPopup); //dodanie funkcji do mapy
+
+//obsługa kontorlki przełącznika warstw
+var baseMaps = {
+"OSM": osm,"mapbox": mapbox
+};
+var overlayMaps = {
+"lasy" : lasy, "wody" : wody
+};
+myLayerControl=L.control.layers(baseMaps,overlayMaps).addTo(map);
+
+//dodanie obiektu GeoJSON
+var point = {
+ 	"type": "Feature", 
+ 	"properties": {
+ 	"name": "Coors Field"}, 
+	"geometry": {
+ 	"type": "Point", 
+ 	"coordinates": [17.05,52.25] 
+	} 
+};
+var pointl=L.geoJSON(point);
+myLayerControl.addOverlay(pointl, 'point');
+
+
+</script>
+
+
+</body>
+</html>
